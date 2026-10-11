@@ -72,7 +72,7 @@ namespace gui {
 
 const char* const kVideoExtensions[kNumVideoExtensions] = {
     ".mp4", ".mov", ".mkv", ".webm", ".m4v", ".insv", ".osv", ".avi",
-    ".mts", ".m2ts", ".360", ".ts", ".wmv", ".lrv",
+    ".mts", ".m2ts", ".360", ".ts", ".wmv", ".lrv", ".prx",
 };
 
 bool is_image_file(const fs::path& p) {
@@ -643,7 +643,8 @@ bool is_pano360_path(const std::string& path) {
 }
 
 bool is_packed_lens_path(const std::string& path) {
-    return lower_ext(path) == ".insp" || lower_ext(path) == ".lrv";
+    const std::string e = lower_ext(path);
+    return e == ".insp" || e == ".lrv" || e == ".prx";
 }
 
 int probe_packed_lenses(const std::string& dir) {
@@ -896,8 +897,8 @@ std::vector<std::string> camera_group_models(const std::vector<PrepInput>& input
     return out;
 }
 
-// A camera .xml next to a point-cloud .ply, which is what MetashapeParser
-// probes for.
+// A camera .xml next to a point-cloud .ply, or a .psx project, which is what
+// MetashapeParser probes for.
 static bool metashape_export_here(const fs::path& p) {
     std::error_code ec;
     bool has_xml = false, has_ply = false;
@@ -906,6 +907,7 @@ static bool metashape_export_here(const fs::path& p) {
         if (!it->is_regular_file(ec)) continue;
         std::string e = it->path().extension().string();
         for (auto& c : e) c = (char)std::tolower((unsigned char)c);
+        if (e == ".psx") return true;
         has_xml = has_xml || e == ".xml";
         has_ply = has_ply || e == ".ply";
     }
